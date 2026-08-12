@@ -1,28 +1,50 @@
-# Simo Kotinäyttö
+# Simo Kotinäyttö – iPad Mini 2
 
-Valmis iPad Mini 2 -kotinäyttö GitHub Pagesille.
+Tämä versio on tehty vanhalle iPad Mini 2:lle ja GitHub Pagesille.
 
-## Julkaisu GitHubissa
+Vanha iPad ei hae säätä tai sähkön hintaa suoraan ulkopuolisista palveluista. GitHub Actions hakee tiedot 15 minuutin välein ja tekee kevyen `data/latest.json`-tiedoston. iPad lataa vain tämän yhden tiedoston samasta osoitteesta kuin sivu. Jos verkkoyhteys katkeaa hetkeksi, viimeksi onnistuneet tiedot säilyvät iPadin muistissa.
 
-1. Luo GitHubissa uusi julkinen repository nimellä `simo-kotinaytto`.
-2. Avaa repositoryssa **Settings → Pages**.
-3. Valitse kohdasta **Source: GitHub Actions**. Tämä vaihe on pakollinen ennen ensimmäistä julkaisua.
-4. Pura ZIP-tiedosto tietokoneella.
-5. Lataa kaikki puretun kansion tiedostot repositoryn juureen. Lataa myös piilotettu `.github`-kansio.
-6. Avaa **Actions** ja odota, että julkaisu muuttuu vihreäksi.
+## Päivitä nykyinen GitHub-sivu
 
-Jos ensimmäinen julkaisu ehti epäonnistua ennen Pagesin käyttöönottoa, avaa epäonnistunut julkaisu ja valitse **Re-run jobs → Re-run all jobs**.
+1. Pura ZIP-tiedosto tietokoneella.
+2. Avaa GitHubissa repository `simo-j-e/simo-kotinaytto`.
+3. Valitse **Add file → Upload files**.
+4. Lataa kaikki puretut tiedostot repositoryn juureen. Mukaan pitää tulla myös piilotettu `.github`-kansio sekä `data`- ja `scripts`-kansiot.
+5. Valitse **Commit changes**.
+6. Avaa **Settings → Pages** ja varmista, että kohdassa **Source** lukee **GitHub Actions**.
+7. Avaa **Actions → Julkaise Simo Kotinaytto → Run workflow** ja käynnistä julkaisu kerran käsin.
+8. Odota, että julkaisu muuttuu vihreäksi. Sivun osoite on `https://simo-j-e.github.io/simo-kotinaytto/`.
 
-Sivu löytyy tämän jälkeen osoitteesta:
+Työnkulku käyttää Node 24 -yhteensopivia GitHubin Actions-versioita. Vanhaa Node 20 -varoitusta ei pitäisi enää tulla.
 
-`https://simo-j-e.github.io/simo-kotinaytto/`
+## Päivitä vanha iPad
 
-Jatkossa GitHub julkaisee muutokset automaattisesti aina, kun tallennat uusia tiedostoja `main`- tai `master`-haaraan.
+1. Avaa sivu ensin Safarissa tavallisena välilehtenä.
+2. Paina Safarin päivityspainiketta.
+3. Jos vanha näkymä jää näkyviin, sulje aiempi Koti-valikon kotinäyttö, poista sen kuvake ja avaa linkki uudelleen Safarissa.
+4. Paina **Jaa → Lisää Koti-valikkoon**.
+5. Käytä iPadia vaakasuunnassa.
 
-## iPad
+Sivu päivittää kellon jatkuvasti. Sää- ja sähkötiedosto tarkistetaan automaattisesti 15 minuutin välein, aina verkkoyhteyden palatessa ja aina kun sovellus avataan uudelleen.
 
-1. Avaa sivun osoite Safarissa.
-2. Paina **Jaa**.
-3. Valitse **Lisää Koti-valikkoon**.
+## Sijainnin vaihtaminen
 
-Sähkön hinnat ja sää haetaan suoraan internetistä. Erillistä palvelinta tai iSH-sovellusta ei tarvita.
+Sijainti on oletuksena Turku. Muuta tarvittaessa repositoryn `config.json`-tiedostosta nämä kolme kohtaa:
+
+```json
+{
+  "location": "Turku",
+  "latitude": 60.4518,
+  "longitude": 22.2666,
+  "timezone": "Europe/Helsinki"
+}
+```
+
+Kun tallennat muutoksen GitHubiin, sivu julkaistaan automaattisesti uudelleen.
+
+## Tietolähteet ja toimintavarmuus
+
+- Sähkön hinta: ensisijaisesti Volton / Nord Pool, varalla Pörssisähkö.net.
+- Sää: ensisijaisesti Open-Meteo, varalla MET Norway.
+- Jos tietolähteet eivät vastaa, GitHub ei korvaa toimivaa sivua rikkinäisellä päivityksellä.
+- Kuukausittainen ylläpitotyönkulku pitää julkisen repositoryn ajastetut GitHub Actions -työnkulut aktiivisina.

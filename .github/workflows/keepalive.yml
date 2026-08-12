@@ -1,0 +1,22 @@
+name: Pida automaattipaivitys aktiivisena
+
+on:
+  schedule:
+    - cron: "17 4 1 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Hae repository
+        uses: actions/checkout@v6
+      - name: Tee kuukausittainen yllapitomerkinta
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit --allow-empty -m "Pidä kotinäytön automaattipäivitys aktiivisena"
+          git push

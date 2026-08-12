@@ -3,6 +3,8 @@ name: Julkaise Simo Kotinaytto
 on:
   push:
     branches: ["main", "master"]
+  schedule:
+    - cron: "7,22,37,52 * * * *"
   workflow_dispatch:
 
 permissions:
@@ -23,6 +25,8 @@ jobs:
     steps:
       - name: Hae tiedostot
         uses: actions/checkout@v6
+      - name: Hae tuoreet sähkö- ja säätiedot
+        run: node scripts/update-data.js
       - name: Valmistele GitHub Pages
         uses: actions/configure-pages@v6
       - name: Pakkaa sivu

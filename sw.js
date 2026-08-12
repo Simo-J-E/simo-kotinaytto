@@ -1,5 +1,5 @@
-var CACHE = "simo-kotinaytto-github-v1";
-var FILES = ["./", "./index.html", "./styles.css", "./app.js", "./icon.svg", "./icon-180.png", "./icon-512.png", "./manifest.webmanifest"];
+var CACHE = "simo-kotinaytto-github-v2";
+var FILES = ["./", "./index.html", "./styles.css?v=20260812-2", "./app.js?v=20260812-2", "./icon.svg", "./icon-180.png", "./icon-512.png", "./manifest.webmanifest?v=20260812-2"];
 
 self.addEventListener("install", function (event) {
   event.waitUntil(caches.open(CACHE).then(function (cache) { return cache.addAll(FILES); }));
@@ -14,6 +14,7 @@ self.addEventListener("activate", function (event) {
 });
 
 self.addEventListener("fetch", function (event) {
+  if (event.request.url.indexOf("/data/") !== -1) { return; }
   event.respondWith(fetch(event.request).then(function (response) {
     var copy = response.clone();
     caches.open(CACHE).then(function (cache) { cache.put(event.request, copy); });

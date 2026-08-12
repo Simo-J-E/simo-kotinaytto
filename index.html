@@ -9,9 +9,9 @@
   <meta name="apple-mobile-web-app-title" content="Kotinäyttö">
   <meta name="format-detection" content="telephone=no">
   <title>Simo Kotinäyttö</title>
-  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="manifest" href="manifest.webmanifest?v=20260812-2">
   <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=20260812-2">
 </head>
 <body>
   <div class="dashboard" id="dashboard">
@@ -42,6 +42,12 @@
         <span class="price-number" id="currentPrice">--</span>
         <span class="price-unit">snt/kWh</span>
         <span class="price-level"><span class="level-line"></span><span id="priceLevel">HAETAAN HINTOJA</span></span>
+        <span class="price-next">
+          <span class="price-next-label">SEURAAVA HINTA</span>
+          <span><strong id="nextPrice">--</strong><small>snt/kWh</small></span>
+          <span class="price-next-time" id="nextPriceTime">--:--–--:--</span>
+          <span class="price-next-change" id="nextPriceChange">ODOTTAA TIETOJA</span>
+        </span>
         <span class="tap-hint">Näytä kaikki tulevat hinnat</span>
       </button>
 
@@ -72,11 +78,11 @@
             <div><dt>TUNTUU</dt><dd>--°</dd></div>
             <div><dt>TUULI</dt><dd>-- m/s</dd></div>
             <div><dt>SADE</dt><dd>-- mm</dd></div>
-            <div><dt>SATEEN TOD.NÄK.</dt><dd>-- %</dd></div>
+            <div><dt>SATEEN RISKI</dt><dd>-- %</dd></div>
           </dl>
         </div>
         <div class="hourly-labels" aria-hidden="true">
-          <span>KELLO JA SÄÄ</span><span>LÄMPÖ</span><span>SADE / TOD.NÄK.</span>
+          <span>KELLO JA SÄÄ</span><span>LÄMPÖ</span><span>SADE / %</span>
         </div>
         <div class="hourly-weather" id="hourlyWeather" aria-live="polite">
           <div class="weather-loading">Seuraavien tuntien ennuste latautuu…</div>
@@ -115,9 +121,10 @@
     <form class="settings-form" id="settingsForm">
       <fieldset>
         <legend>SIJAINTI JA SÄÄ</legend>
-        <label>Paikan nimi<input id="settingLocation" type="text" maxlength="30" value="Turku"></label>
-        <label>Leveysaste<input id="settingLatitude" type="number" step="0.0001" value="60.4518"></label>
-        <label>Pituusaste<input id="settingLongitude" type="number" step="0.0001" value="22.2666"></label>
+        <label>Paikan nimi<input id="settingLocation" type="text" maxlength="30" value="Turku" disabled></label>
+        <label>Leveysaste<input id="settingLatitude" type="number" step="0.0001" value="60.4518" disabled></label>
+        <label>Pituusaste<input id="settingLongitude" type="number" step="0.0001" value="22.2666" disabled></label>
+        <p class="form-help">Vanhan iPadin vuoksi GitHub hakee sään valmiiksi. Sijainti vaihdetaan tarvittaessa repositoryn <strong>config.json</strong>-tiedostossa.</p>
       </fieldset>
       <fieldset>
         <legend>SÄHKÖSOPIMUS</legend>
@@ -142,6 +149,6 @@
   </div>
 
   <noscript>Tämä näyttö tarvitsee JavaScriptin sähkön hintojen ja sään näyttämiseen.</noscript>
-  <script src="app.js"></script>
+  <script src="app.js?v=20260812-2"></script>
 </body>
 </html>

@@ -14,9 +14,9 @@
     theme: "auto",
     refresh: 15
   };
-  var SETTINGS_KEY = "simo-kotinaytto-settings-v4";
-  var PRICE_CACHE_KEY = "simo-kotinaytto-electricity-v4";
-  var WEATHER_CACHE_KEY = "simo-kotinaytto-weather-v4";
+  var SETTINGS_KEY = "simo-kotinaytto-settings-v5";
+  var PRICE_CACHE_KEY = "simo-kotinaytto-electricity-v5";
+  var WEATHER_CACHE_KEY = "simo-kotinaytto-weather-v5";
   var state = {
     settings: loadSettings(),
     prices: [],
@@ -27,7 +27,9 @@
     lastError: "",
     refreshTimer: null,
     retryTimer: null,
-    retryCount: 0
+    retryCount: 0,
+    bundlePromise: null,
+    dataLocation: ""
   };
   var weekdays = ["Sunnuntai", "Maanantai", "Tiistai", "Keskiviikko", "Torstai", "Perjantai", "Lauantai"];
   var months = ["tammikuuta", "helmikuuta", "maaliskuuta", "huhtikuuta", "toukokuuta", "kesäkuuta", "heinäkuuta", "elokuuta", "syyskuuta", "lokakuuta", "marraskuuta", "joulukuuta"];
@@ -195,16 +197,34 @@
     var min;
     var max;
     var best;
+    var next;
+    var change;
     var i;
     if (!state.prices.length) { return; }
     if (current) {
       byId("currentPrice").textContent = formatPrice(current.price, 2);
       byId("priceTime").textContent = formatTime(current.start) + "–" + formatTime(current.end);
       byId("priceLevel").textContent = levelForPrice(current.price);
+      for (i = 0; i < state.prices.length; i += 1) {
+        if (state.prices[i].start >= current.end) { next = state.prices[i]; break; }
+      }
+      if (next) {
+        byId("nextPrice").textContent = formatPrice(next.price, 2);
+        byId("nextPriceTime").textContent = formatTime(next.start) + "–" + formatTime(next.end);
+        change = next.price - current.price;
+        byId("nextPriceChange").textContent = Math.abs(change) < 0.005 ? "HINTA PYSYY SAMANA" : (change > 0 ? "NOUSEE " : "LASKEE ") + formatPrice(Math.abs(change), 2) + " snt/kWh";
+      } else {
+        byId("nextPrice").textContent = "--";
+        byId("nextPriceTime").textContent = "EI VIELÄ TIEDOSSA";
+        byId("nextPriceChange").textContent = "ODOTTAA UUSIA HINTOJA";
+      }
     } else {
       byId("currentPrice").textContent = "--";
       byId("priceTime").textContent = "EI NYKYISTÄ HINTAA";
       byId("priceLevel").textContent = "ODOTTAA UUSIA HINTOJA";
+      byId("nextPrice").textContent = "--";
+      byId("nextPriceTime").textContent = "EI VIELÄ TIEDOSSA";
+      byId("nextPriceChange").textContent = "ODOTTAA UUSIA HINTOJA";
     }
     if (today.length) {
       min = today[0];
@@ -294,16 +314,16 @@
 
   function weatherInfo(code, isDay) {
     code = number(code, 0);
-    if (code === 0) { return { icon: isDay ? "☀️" : "🌙", text: "Selkeää" }; }
-    if (code === 1) { return { icon: isDay ? "🌤️" : "🌙", text: "Melko selkeää" }; }
-    if (code === 2) { return { icon: "⛅", text: "Puolipilvistä" }; }
-    if (code === 3) { return { icon: "☁️", text: "Pilvistä" }; }
-    if (code === 45 || code === 48) { return { icon: "🌫️", text: "Sumua" }; }
-    if (code >= 51 && code <= 57) { return { icon: "🌦️", text: "Tihkusadetta" }; }
-    if ((code >= 61 && code <= 67) || (code >= 80 && code <= 82)) { return { icon: "🌧️", text: code >= 65 || code === 82 ? "Voimakasta sadetta" : "Sadetta" }; }
-    if ((code >= 71 && code <= 77) || code === 85 || code === 86) { return { icon: "🌨️", text: "Lumisadetta" }; }
-    if (code >= 95) { return { icon: "⛈️", text: "Ukkosta" }; }
-    return { icon: "☁️", text: "Vaihtelevaa" };
+    if (code === 0) { return { icon: isDay ? "☀" : "☾", text: "Selkeää" }; }
+    if (code === 1) { return { icon: isDay ? "☀" : "☾", text: "Melko selkeää" }; }
+    if (code === 2) { return { icon: "☁", text: "Puolipilvistä" }; }
+    if (code === 3) { return { icon: "☁", text: "Pilvistä" }; }
+    if (code === 45 || code === 48) { return { icon: "≋", text: "Sumua" }; }
+    if (code >= 51 && code <= 57) { return { icon: "☂", text: "Tihkusadetta" }; }
+    if ((code >= 61 && code <= 67) || (code >= 80 && code <= 82)) { return { icon: "☂", text: code >= 65 || code === 82 ? "Voimakasta sadetta" : "Sadetta" }; }
+    if ((code >= 71 && code <= 77) || code === 85 || code === 86) { return { icon: "❄", text: "Lumisadetta" }; }
+    if (code >= 95) { return { icon: "⚡", text: "Ukkosta" }; }
+    return { icon: "☁", text: "Vaihtelevaa" };
   }
   function windDirection(degrees) {
     var names = ["P", "KO", "I", "KA", "E", "LO", "L", "LU"];
@@ -352,7 +372,7 @@
       '<dl class="weather-facts"><div><dt>TUNTUU</dt><dd>' + formatTemperature(number(current.apparent_temperature, NaN)) + '</dd></div>' +
       '<div><dt>TUULI</dt><dd>' + formatPrice(number(current.wind_speed_10m, 0) / 3.6, 1) + ' m/s ' + windDirection(current.wind_direction_10m) + '</dd></div>' +
       '<div><dt>SADE</dt><dd>' + formatPrice(number(current.precipitation, 0), 1) + ' mm</dd></div>' +
-      '<div><dt>SATEEN TOD.NÄK.</dt><dd>' + Math.round(currentProbability) + ' %</dd></div></dl>';
+      '<div><dt>SATEEN RISKI</dt><dd>' + Math.round(currentProbability) + ' %</dd></div></dl>';
     byId("weatherHighLow").textContent = "TÄNÄÄN " + formatTemperature(number(daily.temperature_2m_max && daily.temperature_2m_max[0], NaN)) + " / " + formatTemperature(number(daily.temperature_2m_min && daily.temperature_2m_min[0], NaN));
     byId("weatherCredit").textContent = "SÄÄDATA · " + String(payload.source || "ILMATIETEEN LAITOS").toUpperCase();
     rows = weatherRows(payload, new Date());
@@ -367,41 +387,76 @@
 
   function fetchJson(url) {
     return new Promise(function (resolve, reject) {
+      var request = new XMLHttpRequest();
       var finished = false;
-      var timer = setTimeout(function () { if (!finished) { finished = true; reject(new Error("Aikakatkaisu")); } }, 25000);
-      fetch(url, { cache: "no-store", headers: { Accept: "application/json" } }).then(function (response) {
-        if (!response.ok) { throw new Error("HTTP " + response.status); }
-        return response.json();
-      }).then(function (data) {
-        if (!finished) { finished = true; clearTimeout(timer); resolve(data); }
-      }).catch(function (error) {
-        if (!finished) { finished = true; clearTimeout(timer); reject(error); }
-      });
+      var timer = setTimeout(function () {
+        if (!finished) {
+          finished = true;
+          request.abort();
+          reject(new Error("Aikakatkaisu"));
+        }
+      }, 12000);
+      function finish(error, data) {
+        if (finished) { return; }
+        finished = true;
+        clearTimeout(timer);
+        if (error) { reject(error); } else { resolve(data); }
+      }
+      request.onreadystatechange = function () {
+        var data;
+        if (request.readyState !== 4) { return; }
+        if (request.status < 200 || request.status >= 300) {
+          finish(new Error("HTTP " + request.status));
+          return;
+        }
+        try { data = JSON.parse(request.responseText); }
+        catch (error) { finish(new Error("Virheellinen tietotiedosto")); return; }
+        finish(null, data);
+      };
+      request.onerror = function () { finish(new Error("Verkkovirhe")); };
+      request.open("GET", url, true);
+      request.setRequestHeader("Accept", "application/json");
+      request.setRequestHeader("Cache-Control", "no-cache");
+      request.send(null);
     });
   }
+  function bundleUpdated(bundle) {
+    var parsed;
+    if (!bundle || !bundle.generatedAt) { return Date.now(); }
+    parsed = parseDate(bundle.generatedAt).getTime();
+    return isFinite(parsed) ? parsed : Date.now();
+  }
+  function loadBundle() {
+    if (!state.bundlePromise) {
+      state.bundlePromise = fetchJson("data/latest.json?v=" + Date.now()).then(function (bundle) {
+        if (!bundle || !(bundle.prices instanceof Array) || !bundle.weather) { throw new Error("Tietotiedosto on puutteellinen"); }
+        if (bundle.location && bundle.location.name) {
+          state.dataLocation = String(bundle.location.name);
+          updateLocationLabels();
+        }
+        return bundle;
+      });
+      state.bundlePromise.then(function () { state.bundlePromise = null; }, function () { state.bundlePromise = null; });
+    }
+    return state.bundlePromise;
+  }
   function loadElectricity() {
-    return fetchJson("https://public-data.volton.energy/v1/day-ahead-spot-fi/latest.json").then(function (payload) {
+    return loadBundle().then(function (bundle) {
+      var payload = { prices: bundle.prices };
       var prices = normalizePrices(payload);
       if (!prices.length) { throw new Error("Tyhjä hintatieto"); }
       state.prices = prices;
-      state.priceUpdated = Date.now();
+      state.priceUpdated = bundleUpdated(bundle);
       saveCache(PRICE_CACHE_KEY, payload, state.priceUpdated);
       renderPrices();
     });
   }
   function loadWeather() {
-    var url = "https://api.open-meteo.com/v1/forecast" +
-      "?latitude=" + encodeURIComponent(state.settings.latitude) +
-      "&longitude=" + encodeURIComponent(state.settings.longitude) +
-      "&current=temperature_2m,apparent_temperature,precipitation,precipitation_probability,weather_code,wind_speed_10m,wind_direction_10m,is_day" +
-      "&hourly=temperature_2m,apparent_temperature,precipitation,precipitation_probability,weather_code,wind_speed_10m,wind_direction_10m,is_day" +
-      "&daily=temperature_2m_max,temperature_2m_min" +
-      "&timezone=Europe%2FHelsinki&forecast_days=4";
-    return fetchJson(url).then(function (payload) {
+    return loadBundle().then(function (bundle) {
+      var payload = bundle.weather;
       if (!payload || !payload.current || !payload.hourly) { throw new Error("Tyhjä säätieto"); }
-      payload.source = "Open-Meteo";
       state.weather = payload;
-      state.weatherUpdated = Date.now();
+      state.weatherUpdated = bundleUpdated(bundle);
       saveCache(WEATHER_CACHE_KEY, payload, state.weatherUpdated);
       renderWeather();
     });
@@ -444,7 +499,7 @@
   function updateConnection() {
     var connection = byId("connection");
     var latest = Math.max(state.priceUpdated, state.weatherUpdated);
-    var stale = !latest || Date.now() - latest > Math.max(30, state.settings.refresh * 2) * 60000;
+    var stale = !latest || Date.now() - latest > Math.max(90, state.settings.refresh * 4) * 60000;
     var online = typeof navigator.onLine === "undefined" || navigator.onLine;
     if (!online || stale || state.lastError) { addClass(connection, "offline"); } else { removeClass(connection, "offline"); }
     if (!online) { connection.innerHTML = '<span class="connection-mark"></span>YHTEYS KATKENNUT'; }
@@ -470,7 +525,7 @@
     if (dark) { addClass(document.body, "dark"); } else { removeClass(document.body, "dark"); }
   }
   function updateLocationLabels() {
-    var name = state.settings.location.toUpperCase();
+    var name = String(state.dataLocation || state.settings.location).toUpperCase();
     byId("locationLabel").textContent = name + " · KOTINÄYTTÖ";
     byId("weatherPlace").textContent = name;
   }
@@ -533,6 +588,10 @@
     };
     byId("resetSettings").onclick = function () { state.settings = copySettings(DEFAULTS); fillSettingsForm(); };
     window.addEventListener("online", function () { state.lastError = ""; refreshAll(true); });
+    window.addEventListener("pageshow", function () {
+      updateClock();
+      if (Date.now() - Math.min(state.priceUpdated || 0, state.weatherUpdated || 0) > state.settings.refresh * 60000) { refreshAll(false); }
+    });
     window.addEventListener("offline", updateConnection);
     document.addEventListener("visibilitychange", function () {
       if (!document.hidden) {
@@ -567,8 +626,13 @@
     updateConnection();
     refreshAll(false);
     setInterval(updateClock, 1000);
+    setInterval(function () {
+      if (!document.hidden && Date.now() - Math.min(state.priceUpdated || 0, state.weatherUpdated || 0) > state.settings.refresh * 60000) { refreshAll(false); }
+    }, 60000);
     if ("serviceWorker" in navigator && location.protocol.indexOf("http") === 0) {
-      navigator.serviceWorker.register("sw.js").catch(function () {});
+      navigator.serviceWorker.register("sw.js?v=20260812-2").then(function (registration) {
+        if (registration && registration.update) { registration.update(); }
+      }).catch(function () {});
     }
   }
 
