@@ -4,7 +4,7 @@ Valmis iPad Mini 2 -kotinäyttö GitHub Pagesille.
 
 ## Julkaisu GitHubissa
 
-1. Luo GitHubissa uusi julkinen repository nimellä `simo-kotinaytto`.
+1. Luo GitHubissa uusi julkinen repository nimellä `kotinaytto`.
 2. Avaa repositoryssa **Settings → Pages**.
 3. Valitse kohdasta **Source: GitHub Actions**. Tämä vaihe on pakollinen ennen ensimmäistä julkaisua.
 4. Pura ZIP-tiedosto tietokoneella.
