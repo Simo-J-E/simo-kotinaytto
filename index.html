@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="fi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+  <meta name="theme-color" content="#172737">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Kotinäyttö">
+  <meta name="format-detection" content="telephone=no">
+  <title>Simo Kotinäyttö</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="dashboard" id="dashboard">
+    <header class="topbar">
+      <div class="clock-block" aria-label="Nykyinen aika">
+        <time class="clock" id="clock">--:--</time>
+        <div class="seconds" id="seconds">--</div>
+      </div>
+      <div class="date-block">
+        <div class="weekday" id="weekday">Ladataan</div>
+        <div class="date" id="date">--</div>
+        <div class="location" id="locationLabel">TURKU · KOTINÄYTTÖ</div>
+      </div>
+      <div class="system-block">
+        <div class="system-actions">
+          <button class="settings-button" id="settingsButton" type="button">ASETUKSET</button>
+          <button class="icon-button" id="refreshButton" type="button" aria-label="Päivitä tiedot">↻</button>
+        </div>
+        <div class="connection" id="connection"><span class="connection-mark"></span>YHDISTETTY</div>
+        <div class="updated" id="updated">ODOTTAA TIETOJA</div>
+      </div>
+    </header>
+
+    <main class="main-grid">
+      <button class="current-price section-button" id="priceButton" type="button" aria-label="Avaa kaikki tulevat sähkön hinnat">
+        <span class="section-index">01 / SÄHKÖ NYT</span>
+        <span class="price-time" id="priceTime">--:--–--:--</span>
+        <span class="price-number" id="currentPrice">--</span>
+        <span class="price-unit">snt/kWh</span>
+        <span class="price-level"><span class="level-line"></span><span id="priceLevel">HAETAAN HINTOJA</span></span>
+        <span class="tap-hint">Näytä kaikki tulevat hinnat</span>
+      </button>
+
+      <button class="price-forecast section-button" id="chartButton" type="button" aria-label="Avaa koko näytön hintakaavio">
+        <span class="section-header">
+          <span class="section-index">02 / SEURAAVAT 10 TUNTIA</span>
+          <span class="chart-note">TUNTIKESKIARVO · snt/kWh</span>
+        </span>
+        <span class="main-chart" id="mainChart" aria-live="polite">
+          <span class="loading-copy">Haetaan hintatietoja…</span>
+        </span>
+        <span class="expand-copy">Avaa tarkat hinnat koko näytölle →</span>
+      </button>
+
+      <section class="weather-panel" aria-labelledby="weatherTitle">
+        <div class="section-header weather-heading">
+          <span class="section-index" id="weatherTitle">03 / ULKOILMA</span>
+          <span class="weather-place-summary"><span id="weatherPlace">TURKU</span><span id="weatherHighLow">TÄNÄÄN --° / --°</span></span>
+        </div>
+        <div class="weather-now" id="weatherNow">
+          <div class="weather-now-icon" aria-hidden="true">◌</div>
+          <div class="weather-now-main">
+            <div class="weather-now-label">NYT</div>
+            <div class="weather-now-temp">--°</div>
+            <div class="weather-now-condition">Haetaan säätietoja…</div>
+          </div>
+          <dl class="weather-facts">
+            <div><dt>TUNTUU</dt><dd>--°</dd></div>
+            <div><dt>TUULI</dt><dd>-- m/s</dd></div>
+            <div><dt>SADE</dt><dd>-- mm</dd></div>
+            <div><dt>SATEEN TOD.NÄK.</dt><dd>-- %</dd></div>
+          </dl>
+        </div>
+        <div class="hourly-labels" aria-hidden="true">
+          <span>KELLO JA SÄÄ</span><span>LÄMPÖ</span><span>SADE / TOD.NÄK.</span>
+        </div>
+        <div class="hourly-weather" id="hourlyWeather" aria-live="polite">
+          <div class="weather-loading">Seuraavien tuntien ennuste latautuu…</div>
+        </div>
+        <div class="weather-credit" id="weatherCredit">SÄÄDATA · OPEN-METEO</div>
+      </section>
+    </main>
+
+    <footer class="bottom-strip">
+      <div class="stat"><span>KESKIHINTA TÄNÄÄN</span><strong id="averagePrice">--</strong><small>snt/kWh</small></div>
+      <div class="stat"><span>HALVIN</span><strong id="minimumPrice">--</strong><small id="minimumTime">--:--</small></div>
+      <div class="stat"><span>KALLEIN</span><strong id="maximumPrice">--</strong><small id="maximumTime">--:--</small></div>
+      <div class="stat best-time"><span>PARAS 90 MIN AIKA</span><strong id="bestTime">--:--–--:--</strong><small id="bestAverage">-- snt/kWh keskim.</small></div>
+    </footer>
+  </div>
+
+  <div class="overlay" id="priceOverlay" aria-hidden="true">
+    <div class="overlay-header">
+      <div><div class="section-index">SÄHKÖN HINNAT · TARKKA AIKA</div><h1>Tulevat hinnat</h1></div>
+      <button class="close-button" id="closePrice" type="button">SULJE ×</button>
+    </div>
+    <div class="detail-key">
+      <span><i class="key-current"></i>NYT</span>
+      <span><i class="key-cheap"></i>HALVIN</span>
+      <span>Pyyhkäise kaaviota sivulle nähdäksesi lisää</span>
+    </div>
+    <div class="detail-scroll" id="detailScroll"><div class="detail-chart" id="detailChart"></div></div>
+    <div class="detail-footer" id="detailFooter">Sähködata: Volton Technology / Nord Pool / ENTSO-E · päivittyy automaattisesti.</div>
+  </div>
+
+  <div class="overlay settings-overlay" id="settingsOverlay" aria-hidden="true">
+    <div class="overlay-header">
+      <div><div class="section-index">KOTINÄYTTÖ</div><h1>Asetukset</h1></div>
+      <button class="close-button" id="closeSettings" type="button">SULJE ×</button>
+    </div>
+    <form class="settings-form" id="settingsForm">
+      <fieldset>
+        <legend>SIJAINTI JA SÄÄ</legend>
+        <label>Paikan nimi<input id="settingLocation" type="text" maxlength="30" value="Turku"></label>
+        <label>Leveysaste<input id="settingLatitude" type="number" step="0.0001" value="60.4518"></label>
+        <label>Pituusaste<input id="settingLongitude" type="number" step="0.0001" value="22.2666"></label>
+      </fieldset>
+      <fieldset>
+        <legend>SÄHKÖSOPIMUS</legend>
+        <label>Myyjän marginaali, snt/kWh ilman ALV:tä<input id="settingMargin" type="number" step="0.001" value="0"></label>
+        <label>Muu energialisä, snt/kWh ilman ALV:tä<input id="settingAddition" type="number" step="0.001" value="0"></label>
+        <label>ALV lisille, %<input id="settingVat" type="number" step="0.1" value="25.5"></label>
+        <label>Kuukausimaksu, €/kk<input id="settingMonthly" type="number" step="0.01" value="0"></label>
+        <p class="form-help">Kuukausimaksua ei jaeta kWh-hintaan, koska kulutus vaihtelee. Pörssihinta sisältää markkinadatan ALV:n.</p>
+      </fieldset>
+      <fieldset>
+        <legend>NÄYTTÖ</legend>
+        <label>Halvan hinnan raja, snt/kWh<input id="settingCheap" type="number" step="0.1" value="5"></label>
+        <label>Kalliin hinnan raja, snt/kWh<input id="settingExpensive" type="number" step="0.1" value="15"></label>
+        <label>Teema<select id="settingTheme"><option value="auto">Automaattinen</option><option value="light">Vaalea</option><option value="dark">Tumma</option></select></label>
+        <label>Päivitysväli, minuuttia<input id="settingRefresh" type="number" min="5" max="60" step="1" value="15"></label>
+      </fieldset>
+      <div class="settings-actions">
+        <button class="save-button" type="submit">TALLENNA JA PÄIVITÄ</button>
+        <button class="reset-button" id="resetSettings" type="button">PALAUTA OLETUKSET</button>
+      </div>
+    </form>
+  </div>
+
+  <noscript>Tämä näyttö tarvitsee JavaScriptin sähkön hintojen ja sään näyttämiseen.</noscript>
+  <script src="app.js"></script>
+</body>
+</html>
