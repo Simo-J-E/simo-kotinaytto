@@ -19,13 +19,15 @@ Työnkulku käyttää Node 24 -yhteensopivia GitHubin Actions-versioita. Vanhaa 
 
 ## Päivitä vanha iPad
 
-1. Avaa sivu ensin Safarissa tavallisena välilehtenä.
-2. Paina Safarin päivityspainiketta.
+1. Avaa sivu ensin Safarissa osoitteella `https://simo-j-e.github.io/simo-kotinaytto/?versio=4`.
+2. Varmista, että oikeassa yläkulmassa lukee **V4**. Tämä poistaa vanhan välimuistin.
 3. Jos vanha näkymä jää näkyviin, sulje aiempi Koti-valikon kotinäyttö, poista sen kuvake ja avaa linkki uudelleen Safarissa.
 4. Paina **Jaa → Lisää Koti-valikkoon**.
 5. Käytä iPadia vaakasuunnassa.
 
 Sivu päivittää kellon jatkuvasti. Sää- ja sähkötiedosto tarkistetaan automaattisesti 15 minuutin välein, aina verkkoyhteyden palatessa ja aina kun sovellus avataan uudelleen.
+
+Kun uusin versio on latautunut, oikeassa yläkulmassa lukee päivitysajan jälkeen **V4**. Versio 4 mittaa Safarin todellisen näkyvän korkeuden ja poistaa vanhan sivuvälimuistin.
 
 ## Sijainnin vaihtaminen
 

@@ -54,14 +54,10 @@ button {
   -webkit-flex-direction: column;
   flex-direction: column;
   width: 100%;
-  height: 100vh;
+  height: 100%;
   min-height: 0;
   padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
   background: var(--paper);
-}
-
-@supports (-webkit-touch-callout: none) {
-  .dashboard { height: -webkit-fill-available; }
 }
 
 .topbar {
@@ -352,13 +348,13 @@ select:focus {
   min-height: 0;
   border-top: 1px solid var(--ink);
   background: var(--ink);
-  color: var(--paper);
+  color: #edf3f6;
 }
 
 .stat { min-width: 0; padding: 8px 12px 6px; border-right: 1px solid #53606a; overflow: hidden; }
 .stat:last-child { border-right: 0; }
 .stat span { display: block; overflow: hidden; font: 700 8px/1 Menlo, Consolas, monospace; letter-spacing: .6px; color: #bcc7cd; white-space: nowrap; text-overflow: ellipsis; }
-.stat strong { display: block; max-width: 100%; margin-top: 5px; overflow: hidden; font-size: 24px; font-size: clamp(20px, 2.4vw, 27px); line-height: 1; letter-spacing: -1px; white-space: nowrap; text-overflow: ellipsis; }
+.stat strong { display: block; max-width: 100%; margin-top: 5px; overflow: hidden; color: #edf3f6; font-size: 24px; font-size: clamp(20px, 2.4vw, 27px); line-height: 1; letter-spacing: -1px; white-space: nowrap; text-overflow: ellipsis; }
 .stat small { display: block; margin: 4px 0 0; overflow: hidden; font: 800 9px/1 Menlo, Consolas, monospace; color: #dbe5ea; white-space: nowrap; text-overflow: ellipsis; }
 .stat #minimumTime,
 .stat #maximumTime { color: #9ccbe4; font-size: 10px; }
@@ -372,6 +368,7 @@ select:focus {
   right: 0;
   bottom: 0;
   left: 0;
+  height: 100%;
   display: none;
   -webkit-flex-direction: column;
   flex-direction: column;
@@ -498,3 +495,33 @@ body.dark .stat { border-color: #53606a; }
 @media (prefers-reduced-motion: reduce) {
   *, *:before, *:after { animation: none !important; transition: none !important; }
 }
+
+body.compact-height .topbar { -webkit-flex-basis: 70px; flex-basis: 70px; }
+body.compact-height .clock-block { padding-top: 5px; padding-bottom: 4px; }
+body.compact-height .clock { font-size: 49px; }
+body.compact-height .date-block { padding-top: 7px; padding-bottom: 4px; }
+body.compact-height .weekday { font-size: 18px; }
+body.compact-height .date { margin-top: 2px; font-size: 14px; }
+body.compact-height .location { margin-top: 5px; }
+body.compact-height .system-block { padding-top: 5px; padding-bottom: 4px; }
+body.compact-height .settings-button,
+body.compact-height .icon-button { min-height: 27px; }
+body.compact-height .current-price { padding-top: 12px; padding-bottom: 9px; }
+body.compact-height .price-time { margin-top: 24px; }
+body.compact-height .price-number { margin-top: 8px; font-size: 60px; }
+body.compact-height .price-unit { margin-top: 9px; }
+body.compact-height .price-level { margin-top: 18px; }
+body.compact-height .price-next { padding-top: 9px; }
+body.compact-height .price-next strong { margin-top: 5px; font-size: 25px; }
+body.compact-height .tap-hint { margin-top: 10px; }
+body.compact-height .weather-heading { -webkit-flex-basis: 39px; flex-basis: 39px; min-height: 39px; padding-top: 11px; }
+body.compact-height .weather-now { -webkit-flex-basis: 100px; flex-basis: 100px; padding-top: 8px; padding-bottom: 8px; }
+body.compact-height .weather-now-temp { font-size: 38px; }
+body.compact-height .bottom-strip { -webkit-flex-basis: 76px; flex-basis: 76px; }
+body.compact-height .stat { padding-top: 6px; padding-bottom: 4px; }
+body.compact-height .stat strong { margin-top: 4px; font-size: 21px; }
+body.compact-height .stat small { margin-top: 3px; }
+body.compact-height .overlay-header { -webkit-flex-basis: 76px; flex-basis: 76px; padding-top: 8px; padding-bottom: 8px; }
+body.compact-height .overlay-header h1 { margin-top: 5px; font-size: 31px; }
+body.compact-height .detail-key { -webkit-flex-basis: 34px; flex-basis: 34px; }
+body.compact-height .detail-footer { -webkit-flex-basis: 36px; flex-basis: 36px; padding-top: 11px; padding-bottom: 9px; }

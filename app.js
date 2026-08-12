@@ -1,6 +1,7 @@
 (function () {
   "use strict";
 
+  var APP_VERSION = "V4";
   var DEFAULTS = {
     location: "Turku",
     latitude: 60.4518,
@@ -60,6 +61,46 @@
   function hasClass(element, name) { return (" " + element.className + " ").indexOf(" " + name + " ") !== -1; }
   function addClass(element, name) { if (!hasClass(element, name)) { element.className += (element.className ? " " : "") + name; } }
   function removeClass(element, name) { element.className = (" " + element.className + " ").replace(" " + name + " ", " ").replace(/^\s+|\s+$/g, ""); }
+
+  function syncViewport() {
+    var height = number(window.innerHeight, 0);
+    var clientHeight = number(document.documentElement.clientHeight, 0);
+    var visualHeight = window.visualViewport ? number(window.visualViewport.height, 0) : 0;
+    var overlays = document.getElementsByClassName("overlay");
+    var i;
+    if (clientHeight && (!height || clientHeight < height)) { height = clientHeight; }
+    if (visualHeight && (!height || visualHeight < height)) { height = visualHeight; }
+    if (height < 400) { height = number(window.screen && window.screen.height, 768); }
+    byId("dashboard").style.height = Math.round(height) + "px";
+    document.body.style.height = Math.round(height) + "px";
+    for (i = 0; i < overlays.length; i += 1) { overlays[i].style.height = Math.round(height) + "px"; }
+    if (height < 730) { addClass(document.body, "compact-height"); }
+    else { removeClass(document.body, "compact-height"); }
+  }
+
+  function disableOldOfflineCache() {
+    function unregister(registration) { if (registration && registration.unregister) { registration.unregister(); } }
+    if ("serviceWorker" in navigator) {
+      if (navigator.serviceWorker.getRegistrations) {
+        navigator.serviceWorker.getRegistrations().then(function (registrations) {
+          var i;
+          for (i = 0; i < registrations.length; i += 1) { unregister(registrations[i]); }
+        }).catch(function () {});
+      } else if (navigator.serviceWorker.getRegistration) {
+        navigator.serviceWorker.getRegistration().then(unregister).catch(function () {});
+      }
+    }
+    if (window.caches && window.caches.keys) {
+      window.caches.keys().then(function (keys) {
+        var tasks = [];
+        var i;
+        for (i = 0; i < keys.length; i += 1) {
+          if (keys[i].indexOf("simo-kotinaytto") === 0) { tasks.push(window.caches.delete(keys[i])); }
+        }
+        return Promise.all(tasks);
+      }).catch(function () {});
+    }
+  }
 
   function copySettings(source) {
     var result = {};
@@ -300,7 +341,9 @@
       if (!cheapest || future[i].price < cheapest.price) { cheapest = future[i]; }
     }
     range = Math.max(1, max - min);
-    maxBarHeight = Math.max(190, Math.min(470, number(window.innerHeight, 768) - 300));
+    height = number(byId("detailScroll").clientHeight, 0);
+    maxBarHeight = height > 250 ? height - 105 : number(window.innerHeight, 768) - 300;
+    maxBarHeight = Math.max(150, Math.min(470, maxBarHeight));
     for (i = 0; i < future.length; i += 1) {
       current = future[i].start <= now && future[i].end > now;
       height = minBarHeight + ((future[i].price - min) / range) * (maxBarHeight - minBarHeight);
@@ -509,7 +552,7 @@
     else if (stale && latest) { connection.innerHTML = '<span class="connection-mark"></span>TIETO VANHENTUNUT'; }
     else if (state.lastError) { connection.innerHTML = '<span class="connection-mark"></span>PÄIVITYSVIRHE'; }
     else { connection.innerHTML = '<span class="connection-mark"></span>YHDISTETTY'; }
-    byId("updated").textContent = latest ? "PÄIVITETTY " + formatTime(new Date(latest)) : (state.requestRunning ? "HAETAAN TIETOJA…" : "EI VIELÄ TIETOJA");
+    byId("updated").textContent = (latest ? "PÄIVITETTY " + formatTime(new Date(latest)) : (state.requestRunning ? "HAETAAN TIETOJA…" : "EI VIELÄ TIETOJA")) + " · " + APP_VERSION;
   }
 
   function updateClock() {
@@ -534,11 +577,16 @@
   }
   function openOverlay(id, closeId) {
     var overlay = byId(id);
+    syncViewport();
     addClass(overlay, "open");
     overlay.setAttribute("aria-hidden", "false");
     if (id === "priceOverlay") {
+      renderDetailChart(new Date());
       byId("detailScroll").scrollLeft = 0;
-      setTimeout(function () { byId("detailScroll").scrollLeft = 0; }, 30);
+      setTimeout(function () {
+        renderDetailChart(new Date());
+        byId("detailScroll").scrollLeft = 0;
+      }, 60);
     }
     byId(closeId).focus();
   }
@@ -596,12 +644,19 @@
     byId("resetSettings").onclick = function () { state.settings = copySettings(DEFAULTS); fillSettingsForm(); };
     window.addEventListener("online", function () { state.lastError = ""; refreshAll(true); });
     window.addEventListener("pageshow", function () {
+      syncViewport();
       updateClock();
       if (Date.now() - Math.min(state.priceUpdated || 0, state.weatherUpdated || 0) > state.settings.refresh * 60000) { refreshAll(false); }
     });
     window.addEventListener("offline", updateConnection);
+    window.addEventListener("resize", function () {
+      syncViewport();
+      if (state.prices.length) { renderPrices(); }
+    });
     window.addEventListener("orientationchange", function () {
-      setTimeout(function () { if (state.prices.length) { renderPrices(); } }, 250);
+      syncViewport();
+      setTimeout(function () { syncViewport(); if (state.prices.length) { renderPrices(); } }, 250);
+      setTimeout(function () { syncViewport(); if (state.prices.length) { renderPrices(); } }, 800);
     });
     document.addEventListener("visibilitychange", function () {
       if (!document.hidden) {
@@ -628,6 +683,8 @@
     }
   }
   function init() {
+    syncViewport();
+    disableOldOfflineCache();
     updateLocationLabels();
     applyTheme();
     updateClock();
@@ -639,11 +696,6 @@
     setInterval(function () {
       if (!document.hidden && Date.now() - Math.min(state.priceUpdated || 0, state.weatherUpdated || 0) > state.settings.refresh * 60000) { refreshAll(false); }
     }, 60000);
-    if ("serviceWorker" in navigator && location.protocol.indexOf("http") === 0) {
-      navigator.serviceWorker.register("sw.js?v=20260812-3").then(function (registration) {
-        if (registration && registration.update) { registration.update(); }
-      }).catch(function () {});
-    }
   }
 
   init();
