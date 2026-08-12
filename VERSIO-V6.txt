@@ -1,0 +1,4 @@
+Simo Kotinäyttö Canvas V6
+
+Oikeassa yläkulmassa pitää lukea: V6 CANVAS
+Julkaisuosoite: https://simo-j-e.github.io/simo-kotinaytto/?canvas=6

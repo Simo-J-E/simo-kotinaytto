@@ -1,4 +1,4 @@
-/* Canvas V5 poistaa vanhan iPadin aiemman sivuvälimuistin käytöstä. */
+/* Canvas V6 poistaa vanhan iPadin aiemman sivuvälimuistin käytöstä. */
 self.addEventListener("install", function () { self.skipWaiting(); });
 
 self.addEventListener("activate", function (event) {

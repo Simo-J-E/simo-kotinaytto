@@ -1,9 +1,9 @@
 (function () {
   "use strict";
 
-  var VERSION = "V5 CANVAS";
+  var VERSION = "V6 CANVAS";
   var DATA_URL = "data/latest.json";
-  var DATA_CACHE_KEY = "simo-kotinaytto-canvas-data-v5";
+  var DATA_CACHE_KEY = "simo-kotinaytto-canvas-data-v6";
   var SETTINGS_KEY = "simo-kotinaytto-settings-v5";
   var canvas = document.getElementById("screen");
   var fallback = document.getElementById("fallback");
@@ -45,6 +45,7 @@
   function pad(value) { return value < 10 ? "0" + value : String(value); }
   function formatTime(date) { return pad(date.getHours()) + ":" + pad(date.getMinutes()); }
   function formatDay(date) { return pad(date.getDate()) + "." + pad(date.getMonth() + 1) + "."; }
+  function dayKey(date) { return date.getFullYear() + "-" + pad(date.getMonth() + 1) + "-" + pad(date.getDate()); }
   function formatPrice(value, decimals) {
     if (!isFinite(value)) { return "--"; }
     return value.toFixed(typeof decimals === "number" ? decimals : 2).replace(".", ",");
@@ -236,6 +237,20 @@
     for (i = 0; i < state.prices.length; i += 1) { if (state.prices[i].end > now) { rows.push(state.prices[i]); } }
     return rows;
   }
+  function dailyExtremes() {
+    var output = {};
+    var key;
+    var item;
+    var i;
+    for (i = 0; i < state.prices.length; i += 1) {
+      item = state.prices[i];
+      key = dayKey(item.start);
+      if (!output[key]) { output[key] = { minimum: item, maximum: item }; }
+      if (item.price < output[key].minimum.price) { output[key].minimum = item; }
+      if (item.price > output[key].maximum.price) { output[key].maximum = item; }
+    }
+    return output;
+  }
   function priceClass(price) {
     if (price <= state.settings.cheap) { return "cheap"; }
     if (price >= state.settings.expensive) { return "expensive"; }
@@ -302,10 +317,15 @@
     var themeWidth = 70;
     var buttonHeight = Math.max(28, headerHeight * 0.39);
     var updatedLabel;
+    var clockSize = headerHeight * 0.67;
+    var clockValue = formatTime(now);
+    var clockEnd;
     box(0, 0, width, headerHeight, colors.paper, colors.ink);
     box(0, 0, clockWidth, headerHeight, colors.clock, null);
-    text(formatTime(now), 17, headerHeight * 0.72, headerHeight * 0.67, "#f7fafb", 800, "left", clockWidth - 58, false);
-    text(pad(now.getSeconds()), clockWidth - 28, headerHeight * 0.71, 13, colors.accent, 800, "center", null, true);
+    text(clockValue, 17, headerHeight * 0.72, clockSize, "#f7fafb", 800, "left", clockWidth - 58, false);
+    setFont(clockSize, 800, false);
+    clockEnd = 17 + context.measureText(clockValue).width;
+    text(pad(now.getSeconds()), Math.min(clockWidth - 18, clockEnd + 14), headerHeight * 0.71, 15, colors.accent, 800, "center", null, true);
     line(clockWidth, 0, clockWidth, headerHeight, colors.ink);
     text(weekdays[now.getDay()].toUpperCase(), clockWidth + 18, headerHeight * 0.34, Math.max(18, headerHeight * 0.23), colors.ink, 800, "left", dateWidth - 32, false);
     text(now.getDate() + ". " + months[now.getMonth()] + " " + now.getFullYear(), clockWidth + 18, headerHeight * 0.59, Math.max(14, headerHeight * 0.18), colors.ink, 500, "left", dateWidth - 32, false);
@@ -417,35 +437,35 @@
     box(rectangle.x, rowY, rectangle.width, nowHeight, colors.weather, colors.ink);
     text(info.icon, iconX, rowY + nowHeight * 0.52, wide ? 36 : 31, colors.ink, 600, "center", null, false);
     text("NYT · " + formatTime(now), mainX, rowY + 21, 8, colors.ink, 800, "left", factsX - mainX - 8, true);
-    text(current ? formatTemperature(number(current.temperature_2m, NaN)) : "--°", mainX, rowY + 65, 44, colors.ink, 800, "left", factsX - mainX - 8, false);
-    text(info.label, mainX, rowY + nowHeight - 12, 12, colors.ink, 800, "left", factsX - mainX - 8, false);
+    text(current ? formatTemperature(number(current.temperature_2m, NaN)) : "--°", mainX, rowY + 68, wide ? 52 : 49, colors.ink, 800, "left", factsX - mainX - 8, false);
+    text(info.label, mainX, rowY + nowHeight - 11, 13, colors.ink, 800, "left", factsX - mainX - 8, false);
     line(factsX, rowY + 10, factsX, rowY + nowHeight - 10, colors.weatherLine);
     firstColumn = (rectangle.x + rectangle.width - factsX) / 2;
-    text("TUNTUU", factsX + 10, rowY + 21, 7, colors.muted, 800, "left", firstColumn - 16, true);
-    text(current ? formatTemperature(number(current.apparent_temperature, NaN)) : "--°", factsX + 10, rowY + 39, 10, colors.ink, 800, "left", firstColumn - 16, true);
-    text("TUULI", factsX + firstColumn, rowY + 21, 7, colors.muted, 800, "left", firstColumn - 8, true);
-    text(current ? formatPrice(number(current.wind_speed_10m, 0) / 3.6, 1) + " m/s " + windDirection(current.wind_direction_10m) : "-- m/s", factsX + firstColumn, rowY + 39, 10, colors.ink, 800, "left", firstColumn - 8, true);
-    text("SADE", factsX + 10, rowY + nowHeight - 35, 7, colors.muted, 800, "left", firstColumn - 16, true);
-    text(current ? formatPrice(number(current.precipitation, 0), 1) + " mm" : "-- mm", factsX + 10, rowY + nowHeight - 17, 10, colors.ink, 800, "left", firstColumn - 16, true);
-    text("SATEEN RISKI", factsX + firstColumn, rowY + nowHeight - 35, 7, colors.muted, 800, "left", firstColumn - 8, true);
-    text(isFinite(probability) ? Math.round(probability) + " %" : "-- %", factsX + firstColumn, rowY + nowHeight - 17, 10, colors.ink, 800, "left", firstColumn - 8, true);
+    text("TUNTUU", factsX + 10, rowY + 21, 8, colors.muted, 800, "left", firstColumn - 16, true);
+    text(current ? formatTemperature(number(current.apparent_temperature, NaN)) : "--°", factsX + 10, rowY + 41, 12, colors.ink, 800, "left", firstColumn - 16, true);
+    text("TUULI", factsX + firstColumn, rowY + 21, 8, colors.muted, 800, "left", firstColumn - 8, true);
+    text(current ? formatPrice(number(current.wind_speed_10m, 0) / 3.6, 1) + " m/s " + windDirection(current.wind_direction_10m) : "-- m/s", factsX + firstColumn, rowY + 41, 11, colors.ink, 800, "left", firstColumn - 8, true);
+    text("SADE", factsX + 10, rowY + nowHeight - 36, 8, colors.muted, 800, "left", firstColumn - 16, true);
+    text(current ? formatPrice(number(current.precipitation, 0), 1) + " mm" : "-- mm", factsX + 10, rowY + nowHeight - 16, 11, colors.ink, 800, "left", firstColumn - 16, true);
+    text("SATEEN RISKI", factsX + firstColumn, rowY + nowHeight - 36, 8, colors.muted, 800, "left", firstColumn - 8, true);
+    text(isFinite(probability) ? Math.round(probability) + " %" : "-- %", factsX + firstColumn, rowY + nowHeight - 16, 11, colors.ink, 800, "left", firstColumn - 8, true);
     rowY += nowHeight;
     box(rectangle.x, rowY, rectangle.width, labelsHeight, colors.surface, colors.line);
-    text("KELLO JA SÄÄ", rectangle.x + 10, rowY + 17, 7, colors.muted, 800, "left", rectangle.width - 140, true);
-    text("LÄMPÖ", rectangle.x + rectangle.width - 75, rowY + 17, 7, colors.muted, 800, "right", 45, true);
-    text("SADE / %", rectangle.x + rectangle.width - 8, rowY + 17, 7, colors.muted, 800, "right", 64, true);
+    text("KELLO JA SÄÄ", rectangle.x + 10, rowY + 17, 8, colors.muted, 800, "left", rectangle.width - 140, true);
+    text("LÄMPÖ", rectangle.x + rectangle.width - 75, rowY + 17, 8, colors.muted, 800, "right", 45, true);
+    text("SADE / %", rectangle.x + rectangle.width - 8, rowY + 17, 8, colors.muted, 800, "right", 64, true);
     rowY += labelsHeight;
     for (i = 0; i < rowCount; i += 1) {
       box(rectangle.x, rowY + i * rowHeight, rectangle.width, rowHeight, colors.surface, null);
       line(rectangle.x, rowY + (i + 1) * rowHeight, rectangle.x + rectangle.width, rowY + (i + 1) * rowHeight, colors.line);
       if (rows[i]) {
         rowInfo = weatherInfo(rows[i].code, rows[i].isDay);
-        text(formatTime(rows[i].time), rectangle.x + 10, rowY + i * rowHeight + rowHeight * 0.61, 9, colors.ink, 800, "left", 40, true);
-        text(rowInfo.icon, rectangle.x + 55, rowY + i * rowHeight + rowHeight * 0.66, 15, colors.ink, 600, "center", null, false);
-        text(rowInfo.label, rectangle.x + 70, rowY + i * rowHeight + rowHeight * 0.61, 10, colors.ink, 800, "left", rectangle.width - 170, false);
-        text(formatTemperature(rows[i].temperature), rectangle.x + rectangle.width - 76, rowY + i * rowHeight + rowHeight * 0.55, 10, colors.ink, 800, "right", 38, true);
-        text(formatPrice(rows[i].precipitation, 1) + " mm", rectangle.x + rectangle.width - 8, rowY + i * rowHeight + rowHeight * 0.47, 9, colors.ink, 800, "right", 62, true);
-        text(Math.round(rows[i].probability) + " %", rectangle.x + rectangle.width - 8, rowY + i * rowHeight + rowHeight * 0.75, 7, colors.muted, 800, "right", 62, true);
+        text(formatTime(rows[i].time), rectangle.x + 10, rowY + i * rowHeight + rowHeight * 0.62, 10, colors.ink, 800, "left", 42, true);
+        text(rowInfo.icon, rectangle.x + 56, rowY + i * rowHeight + rowHeight * 0.67, 17, colors.ink, 600, "center", null, false);
+        text(rowInfo.label, rectangle.x + 72, rowY + i * rowHeight + rowHeight * 0.62, 11, colors.ink, 800, "left", rectangle.width - 172, false);
+        text(formatTemperature(rows[i].temperature), rectangle.x + rectangle.width - 76, rowY + i * rowHeight + rowHeight * 0.57, 12, colors.ink, 800, "right", 40, true);
+        text(formatPrice(rows[i].precipitation, 1) + " mm", rectangle.x + rectangle.width - 8, rowY + i * rowHeight + rowHeight * 0.47, 10, colors.ink, 800, "right", 62, true);
+        text(Math.round(rows[i].probability) + " %", rectangle.x + rectangle.width - 8, rowY + i * rowHeight + rowHeight * 0.77, 8, colors.muted, 800, "right", 62, true);
       }
     }
     text("SÄÄDATA · " + String(state.weather && state.weather.source || "ODOTTAA TIETOJA").toUpperCase(), rectangle.x + rectangle.width - 8, rectangle.y + rectangle.height - 4, 6, colors.muted, 800, "right", rectangle.width - 16, true);
@@ -476,9 +496,9 @@
     box(0, y, state.width, height, colors.footer, null);
     for (i = 0; i < 4; i += 1) {
       if (i) { line(x, y, x, y + height, "#53606a"); }
-      text(labels[i], x + 11, y + 15, 7, "#bcc7cd", 800, "left", state.width * widths[i] - 20, true);
-      text(values[i], x + 11, y + 44, i === 3 ? 23 : 25, i === 3 ? "#9ccbe4" : "#edf3f6", 800, "left", state.width * widths[i] - 20, false);
-      text(small[i], x + 11, y + height - 8, 8, i === 1 || i === 2 ? "#9ccbe4" : "#dbe5ea", 800, "left", state.width * widths[i] - 20, true);
+      text(labels[i], x + 11, y + 17, 9, "#bcc7cd", 800, "left", state.width * widths[i] - 20, true);
+      text(values[i], x + 11, y + 49, i === 3 ? 25 : 28, i === 3 ? "#9ccbe4" : "#edf3f6", 800, "left", state.width * widths[i] - 20, false);
+      text(small[i], x + 11, y + height - 8, 10, i === 1 || i === 2 ? "#9ccbe4" : "#dbe5ea", 800, "left", state.width * widths[i] - 20, true);
       x += state.width * widths[i];
     }
   }
@@ -487,7 +507,7 @@
     var colors = palette();
     var now = new Date();
     var headerHeight = clamp(state.height * 0.12, 68, 92);
-    var footerHeight = clamp(state.height * 0.115, 72, 84);
+    var footerHeight = clamp(state.height * 0.125, 82, 92);
     var contentY = headerHeight;
     var contentHeight = state.height - headerHeight - footerHeight;
     var leftWidth;
@@ -518,6 +538,7 @@
     var future = futurePrices(now);
     var headerHeight = clamp(state.height * 0.115, 72, 92);
     var keyHeight = 38;
+    var dayBandHeight = 44;
     var footerHeight = 36;
     var side = 20;
     var availableWidth = state.width - side * 2;
@@ -528,13 +549,23 @@
     var end;
     var minimum = Infinity;
     var maximum = -Infinity;
-    var cheapest = null;
+    var extremes = dailyExtremes();
     var range;
-    var chartTop = headerHeight + keyHeight + 24;
+    var bandTop = headerHeight + keyHeight;
+    var chartTop = bandTop + dayBandHeight + 10;
     var baseline = state.height - footerHeight - 65;
-    var maximumBarHeight = Math.max(100, baseline - chartTop - 18);
+    var maximumBarHeight = Math.max(100, baseline - chartTop - 30);
     var minimumBarHeight = Math.min(54, maximumBarHeight * 0.35);
     var i;
+    var groupEnd;
+    var groupKey;
+    var groupX;
+    var groupWidth;
+    var extreme;
+    var dailyMinimum;
+    var dailyMaximum;
+    var tagLabel;
+    var tagColor;
     var item;
     var x;
     var height;
@@ -547,7 +578,6 @@
     for (i = 0; i < future.length; i += 1) {
       minimum = Math.min(minimum, future[i].price);
       maximum = Math.max(maximum, future[i].price);
-      if (!cheapest || future[i].price < cheapest.price) { cheapest = future[i]; }
     }
     range = Math.max(1, maximum - minimum);
     box(0, 0, state.width, state.height, colors.paper, null);
@@ -562,27 +592,63 @@
     text("NYT", 36, headerHeight + 23, 8, colors.muted, 800, "left", null, true);
     box(77, headerHeight + 13, 12, 12, colors.safe, null);
     text("HALVIN", 95, headerHeight + 23, 8, colors.muted, 800, "left", null, true);
+    box(158, headerHeight + 13, 12, 12, colors.danger, null);
+    text("KALLEIN", 176, headerHeight + 23, 8, colors.muted, 800, "left", null, true);
     text("Pyyhkäise vasemmalle tai oikealle", state.width - 18, headerHeight + 23, 8, colors.muted, 800, "right", state.width * 0.48, true);
     line(0, headerHeight + keyHeight, state.width, headerHeight + keyHeight, colors.line);
     if (!future.length) {
       text("Tulevia hintatietoja ei ole saatavilla", state.width / 2, state.height / 2, 14, colors.muted, 700, "center", state.width - 40, false);
     } else {
+      i = start;
+      while (i < end) {
+        groupKey = dayKey(future[i].start);
+        groupEnd = i + 1;
+        while (groupEnd < end && dayKey(future[groupEnd].start) === groupKey) { groupEnd += 1; }
+        groupX = side + (i - start) * cellWidth;
+        groupWidth = (groupEnd - i) * cellWidth;
+        extreme = extremes[groupKey];
+        box(groupX, bandTop, groupWidth, dayBandHeight, (future[i].start.getDate() % 2 ? colors.weather : colors.surface), colors.line);
+        text((groupWidth >= 132 ? weekdays[future[i].start.getDay()].toUpperCase() + " " : "") + formatDay(future[i].start), groupX + 8, bandTop + 17, 10, colors.ink, 800, "left", groupWidth - 16, true);
+        if (extreme && groupWidth >= 160) {
+          text("HALVIN " + formatTime(extreme.minimum.start) + " " + formatPrice(extreme.minimum.price, 2) + "  ·  KALLEIN " + formatTime(extreme.maximum.start) + " " + formatPrice(extreme.maximum.price, 2), groupX + 8, bandTop + 35, 8, colors.muted, 800, "left", groupWidth - 16, true);
+        }
+        line(groupX, bandTop, groupX, state.height - footerHeight, colors.accent, 3);
+        i = groupEnd;
+      }
       for (i = start; i < end; i += 1) {
         item = future[i];
         x = side + (i - start) * cellWidth;
         current = item.start <= now && item.end > now;
-        if (current) { box(x, headerHeight + keyHeight, cellWidth, baseline - headerHeight - keyHeight, colors.weather, null); }
-        else if (item === cheapest) { box(x, headerHeight + keyHeight, cellWidth, baseline - headerHeight - keyHeight, isDark() ? "#243a32" : "#e1ebe4", null); }
-        line(x, headerHeight + keyHeight + 24, x, state.height - footerHeight, colors.line);
+        extreme = extremes[dayKey(item.start)];
+        dailyMinimum = extreme && item === extreme.minimum;
+        dailyMaximum = extreme && item === extreme.maximum;
+        tagLabel = "";
+        tagColor = null;
+        if (current) {
+          box(x, chartTop - 4, cellWidth, baseline - chartTop + 4, colors.weather, null);
+          tagLabel = "NYT";
+          tagColor = colors.accent;
+        } else if (dailyMinimum) {
+          box(x, chartTop - 4, cellWidth, baseline - chartTop + 4, isDark() ? "#243a32" : "#e1ebe4", null);
+          tagLabel = "HALVIN";
+          tagColor = colors.safe;
+        } else if (dailyMaximum) {
+          box(x, chartTop - 4, cellWidth, baseline - chartTop + 4, isDark() ? "#3a292d" : "#f2e1e3", null);
+          tagLabel = "KALLEIN";
+          tagColor = colors.danger;
+        }
+        line(x, chartTop - 4, x, state.height - footerHeight, colors.line);
+        if (tagLabel) {
+          box(x + 4, chartTop, cellWidth - 8, 18, tagColor, null);
+          text(tagLabel, x + cellWidth / 2, chartTop + 13, 7, "#ffffff", 800, "center", cellWidth - 12, true);
+        }
         height = minimumBarHeight + ((item.price - minimum) / range) * (maximumBarHeight - minimumBarHeight);
         box(x + cellWidth * 0.22, baseline - height, cellWidth * 0.56, height, colorForPrice(item.price, colors), null);
         text(formatPrice(item.price, 2), x + cellWidth / 2, baseline + 22, 11, colors.ink, 800, "center", cellWidth - 5, true);
         text(formatTime(item.start), x + cellWidth / 2, baseline + 41, 9, colors.ink, 800, "center", cellWidth - 5, true);
         text(formatDay(item.start), x + cellWidth / 2, baseline + 56, 7, colors.muted, 800, "center", cellWidth - 5, true);
-        if (current) { text("NYT", x + cellWidth / 2, headerHeight + keyHeight + 35, 7, colors.ink, 800, "center", cellWidth - 6, true); }
-        else if (item === cheapest) { text("HALVIN", x + cellWidth / 2, headerHeight + keyHeight + 35, 7, colors.ink, 800, "center", cellWidth - 6, true); }
       }
-      line(side + (end - start) * cellWidth, headerHeight + keyHeight + 24, side + (end - start) * cellWidth, state.height - footerHeight, colors.line);
+      line(side + (end - start) * cellWidth, bandTop, side + (end - start) * cellWidth, state.height - footerHeight, colors.accent, 3);
     }
     box(0, state.height - footerHeight, state.width, footerHeight, colors.paper, null);
     line(0, state.height - footerHeight, state.width, state.height - footerHeight, colors.ink);
