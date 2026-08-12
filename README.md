@@ -4,16 +4,7 @@ Tämä versio on tehty vanhalle iPad Mini 2:lle ja GitHub Pagesille.
 
 Vanha iPad ei hae säätä tai sähkön hintaa suoraan ulkopuolisista palveluista. GitHub Actions hakee tiedot 15 minuutin välein ja tekee kevyen `data/latest.json`-tiedoston. iPad lataa vain tämän yhden tiedoston samasta osoitteesta kuin sivu. Jos verkkoyhteys katkeaa hetkeksi, viimeksi onnistuneet tiedot säilyvät iPadin muistissa.
 
-<<<<<<< HEAD
 ## Päivitä nykyinen GitHub-sivu
-=======
-1. Luo GitHubissa uusi julkinen repository nimellä `kotinaytto`.
-2. Avaa repositoryssa **Settings → Pages**.
-3. Valitse kohdasta **Source: GitHub Actions**. Tämä vaihe on pakollinen ennen ensimmäistä julkaisua.
-4. Pura ZIP-tiedosto tietokoneella.
-5. Lataa kaikki puretun kansion tiedostot repositoryn juureen. Lataa myös piilotettu `.github`-kansio.
-6. Avaa **Actions** ja odota, että julkaisu muuttuu vihreäksi.
->>>>>>> 1ddf952c82a1551538573b8dae3cced91a173b2c
 
 1. Pura ZIP-tiedosto tietokoneella.
 2. Avaa GitHubissa repository `simo-j-e/simo-kotinaytto`.

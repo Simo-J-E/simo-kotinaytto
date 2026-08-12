@@ -289,6 +289,8 @@
     var cheapest = null;
     var range;
     var height;
+    var maxBarHeight;
+    var minBarHeight = 54;
     var current;
     var html = "";
     var i;
@@ -298,12 +300,13 @@
       if (!cheapest || future[i].price < cheapest.price) { cheapest = future[i]; }
     }
     range = Math.max(1, max - min);
+    maxBarHeight = Math.max(190, Math.min(470, number(window.innerHeight, 768) - 300));
     for (i = 0; i < future.length; i += 1) {
       current = future[i].start <= now && future[i].end > now;
-      height = 8 + ((future[i].price - min) / range) * 57;
+      height = minBarHeight + ((future[i].price - min) / range) * (maxBarHeight - minBarHeight);
       html += '<div class="detail-item ' + classForPrice(future[i].price) + (current ? ' now' : '') + (future[i] === cheapest ? ' cheapest' : '') + '">' +
         (current ? '<span class="detail-tag">NYT</span>' : (future[i] === cheapest ? '<span class="detail-tag">HALVIN</span>' : '')) +
-        '<span class="detail-bar" style="height:' + height.toFixed(0) + '%"></span>' +
+        '<span class="detail-bar" style="height:' + height.toFixed(0) + 'px"></span>' +
         '<span class="detail-price">' + formatPrice(future[i].price, 2) + '</span>' +
         '<span class="detail-time">' + formatTime(future[i].start) + '</span>' +
         '<span class="detail-day">' + formatDay(future[i].start) + '</span></div>';
@@ -533,6 +536,10 @@
     var overlay = byId(id);
     addClass(overlay, "open");
     overlay.setAttribute("aria-hidden", "false");
+    if (id === "priceOverlay") {
+      byId("detailScroll").scrollLeft = 0;
+      setTimeout(function () { byId("detailScroll").scrollLeft = 0; }, 30);
+    }
     byId(closeId).focus();
   }
   function closeOverlay(id) {
@@ -593,6 +600,9 @@
       if (Date.now() - Math.min(state.priceUpdated || 0, state.weatherUpdated || 0) > state.settings.refresh * 60000) { refreshAll(false); }
     });
     window.addEventListener("offline", updateConnection);
+    window.addEventListener("orientationchange", function () {
+      setTimeout(function () { if (state.prices.length) { renderPrices(); } }, 250);
+    });
     document.addEventListener("visibilitychange", function () {
       if (!document.hidden) {
         updateClock();
@@ -630,7 +640,7 @@
       if (!document.hidden && Date.now() - Math.min(state.priceUpdated || 0, state.weatherUpdated || 0) > state.settings.refresh * 60000) { refreshAll(false); }
     }, 60000);
     if ("serviceWorker" in navigator && location.protocol.indexOf("http") === 0) {
-      navigator.serviceWorker.register("sw.js?v=20260812-2").then(function (registration) {
+      navigator.serviceWorker.register("sw.js?v=20260812-3").then(function (registration) {
         if (registration && registration.update) { registration.update(); }
       }).catch(function () {});
     }
