@@ -1,6 +1,6 @@
-# Simo Kotinäyttö – iPad Mini 2
+# Simo Kotinäyttö Canvas V5 – iPad Mini 2
 
-Tämä versio on tehty vanhalle iPad Mini 2:lle ja GitHub Pagesille.
+Tämä versio on tehty vanhalle iPad Mini 2:lle, iOS 12.5.7:lle ja GitHub Pagesille. Koko näkymä piirretään yhdelle Canvas 2D -pinnalle. Sivulla ei käytetä Reactia, CSS Gridiä, Flex-asettelua tai palvelutyöntekijää.
 
 Vanha iPad ei hae säätä tai sähkön hintaa suoraan ulkopuolisista palveluista. GitHub Actions hakee tiedot 15 minuutin välein ja tekee kevyen `data/latest.json`-tiedoston. iPad lataa vain tämän yhden tiedoston samasta osoitteesta kuin sivu. Jos verkkoyhteys katkeaa hetkeksi, viimeksi onnistuneet tiedot säilyvät iPadin muistissa.
 
@@ -19,15 +19,15 @@ Työnkulku käyttää Node 24 -yhteensopivia GitHubin Actions-versioita. Vanhaa 
 
 ## Päivitä vanha iPad
 
-1. Avaa sivu ensin Safarissa osoitteella `https://simo-j-e.github.io/simo-kotinaytto/?versio=4`.
-2. Varmista, että oikeassa yläkulmassa lukee **V4**. Tämä poistaa vanhan välimuistin.
+1. Avaa sivu ensin Safarissa osoitteella `https://simo-j-e.github.io/simo-kotinaytto/?canvas=5`.
+2. Varmista, että oikeassa yläkulmassa lukee **V5 CANVAS**.
 3. Jos vanha näkymä jää näkyviin, sulje aiempi Koti-valikon kotinäyttö, poista sen kuvake ja avaa linkki uudelleen Safarissa.
 4. Paina **Jaa → Lisää Koti-valikkoon**.
 5. Käytä iPadia vaakasuunnassa.
 
 Sivu päivittää kellon jatkuvasti. Sää- ja sähkötiedosto tarkistetaan automaattisesti 15 minuutin välein, aina verkkoyhteyden palatessa ja aina kun sovellus avataan uudelleen.
 
-Kun uusin versio on latautunut, oikeassa yläkulmassa lukee päivitysajan jälkeen **V4**. Versio 4 mittaa Safarin todellisen näkyvän korkeuden ja poistaa vanhan sivuvälimuistin.
+Kun uusin versio on latautunut, oikeassa yläkulmassa lukee päivitysajan jälkeen **V5 CANVAS**. Canvas mittaa Safarin todellisen näkyvän leveyden ja korkeuden ja piirtää kaikki osat suoraan siihen kokoon.
 
 ## Sijainnin vaihtaminen
 
